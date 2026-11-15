@@ -767,25 +767,27 @@ of :math:`f`. The same generic functions serve both passes:
      [-0.1095  0.1459 -0.0054]
      [-0.0182 -0.0054  0.0505]]
 
-Limitations
------------
+Runtime-Added Builtin Overloads
+-------------------------------
 
-* The width is fixed when the types are created and cannot change at runtime.
-* Creating a jet space registers its arithmetic on Warp's builtins for the lifetime of the process. The effect is
-  additive and happens once per width and scalar type.
-* Comparisons such as ``a < b`` are not defined on jets. Write ``wp.value(a) < wp.value(b)`` instead:
-  :func:`wp.value() <warp._src.lang.value>` returns plain floats unchanged, so a generic function can branch on floats and jets alike.
-* Only builtins with jet overloads accept jets. Others, such as spatial queries like
-  :func:`wp.mesh_query_point() <warp._src.lang.mesh_query_point>`, operate on floats only and need a custom derivative
-  (see :ref:`jets_custom_derivatives`).
-* Vector and matrix constructors such as ``wp.vec3(a, b, c)`` and ``wp.mat33(...)`` do not accept jets. Build vector
-  and matrix jets with ``J.make_vec3()`` and ``J.make_mat33()`` (from columns), or assign components of an existing jet
-  (``v[i] = s``, ``F[i, j] = s``).
-* Second-order jets take scalar, ``vec2`` and ``vec3`` slots. Matrix slots are not supported; a matrix input
-  decomposes into its components.
-* Jet dtypes must be floating point.
-* A plain scalar, vector or matrix of the jet's dtype can be either operand of a jet operation, and is treated as a
-  constant. The exception is ``wp.where``, whose two branches must both be jets; wrap a plain branch with
-  ``J.constant``.
-* Forward-over-reverse is not supported: :func:`wp.grad <grad>` produces a native function rather than a
-  :func:`@wp.func <func>`, so it cannot be called with jets.
+Creating a :func:`wp.JetSpace <JetSpace>` or :func:`wp.JetSpace2 <JetSpace2>`
+registers additional overloads for selected Warp builtins. These overloads
+allow the builtins to operate on jet values and propagate their derivatives.
+They are registered at runtime, so they may not appear in the generated
+builtin API signatures.
+
+The following are examples of builtins with jet-aware overloads:
+
+.. list-table::
+    :header-rows: 1
+
+    * - Builtin
+      - Purpose
+    * - ``wp.value()``
+      - Extracts the value from a scalar jet.
+    * - ``wp.sin()``
+      - Computes the sine of a jet.
+    * - ``wp.length()``
+      - Computes the length of a vector jet.
+    * - ``wp.svd3()``
+      - Computes the singular value decomposition of a matrix jet.
